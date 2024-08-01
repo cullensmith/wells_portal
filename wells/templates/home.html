@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FracTracker Data Portal</title>
+    <!-- Include Leaflet CSS and JavaScript -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.rawgit.com/mapbox/supercluster/v4.0.1/demo/cluster.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/supercluster@4.0.1/dist/supercluster.js"></script>
+    {% comment %} <script src="https://code.jquery.com/jquery-1.12.4.js"></script> {% endcomment %}
+    <!-- for the underscore variable/js function-->
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/0.10.0/lodash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <!-- geojson vt  -->
+    <script src="https://unpkg.com/geojson-vt@3.2.0/geojson-vt.js"></script>
+    <script src="https://unpkg.com/leaflet-geojson-vt@1.1.0/src/leaflet-geojson-vt.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Style for grid container */
+        .main-container {
+            display: grid;
+            grid-template-rows: 500px 240px 550px;
+            margin-top: 2%;
+            margin-bottom: 2%;
+            margin-left: 14%;
+            margin-right: 2%;
+            grid-gap: 4%;
+            background-color: #ededed;
+            border: 12px solid;
+            border-color: #ededed;
+            border-radius: 20px;
+        }
+        .featurecontainer {
+            height: 500px;
+            {% comment %} border: 5px solid teal; {% endcomment %}
+
+        }
+        .child {
+            z-index: 5000;
+            display: grid;
+            height: 100%;
+            grid-template-rows: 12% 88%;
+            grid-template-columns: 100%;
+        }
+        /* Style for filter grid container */
+        .filterscontainer {
+            {% comment %} border: 5px solid red; {% endcomment %}
+
+            display: grid;
+            height: 100%;
+            grid-template-rows: repeat(3, 33%);
+            grid-template-columns: 50% 50%;
+        }
+
+        .filterschild1grid {
+            display: grid;
+            height: 100%;
+            width: 100%;
+            {% comment %} border: 5px solid blue; {% endcomment %}
+            grid-template-rows: 50% 50%;
+
+        }
+
+        .filterschild1 {
+            height: 100%;
+            width: 97%;
+            {% comment %} border: 0.5px solid yellow; {% endcomment %}
+        }
+        
+        .filterschild1 label {
+            {% comment %} text-align: right; /* Align labels to the right */ {% endcomment %}
+            margin: auto; /* Add space between label and input */
+        }
+        
+        .filterschild1 input{
+            width: 100%; /* Make input fields fill the available space */
+            {% comment %} height: 50%; {% endcomment %}
+            padding: 6px; /* Add padding for better readability */
+            font-size: 15px; /* Adjust font size if needed */
+        }
+        .filterschild1 select {
+            {% comment %} height: 50%; {% endcomment %}
+            width: 25%; /* Make input fields fill the available space */
+            padding: 3px; /* Add padding for better readability */
+            font-size: 15px; /* Adjust font size if needed */
+        }
+
+        #fta_cat {
+            width: 102%;
+            height: 90%
+        }
+
+        .form {
+            z-index: 500;
+            height: 100%;
+        } 
+
+        /* Style for map container */
+        #map {
+            height: 500px;
+            width: 100%; 
+            z-index: 501;
+            border: 1px solid darkgray;
+            border-top-right-radius: 17px;
+            border-top-left-radius: 17px;
+        }
+
+        /* Style for table container */
+        .tablecontainer {
+            max-height: 450px; 
+            max-width: 100%; 
+            overflow-y: auto; /* Add vertical scrollbar when necessary */
+            overflow-x: auto; /* Add horizontal scrollbar when necessary */
+            border-top-left-radius: 10px; /* Round the top-left corner */
+            border-top-right-radius: 10px; /* Round the top-right corner */
+
+        }
+
+        table {
+            width: 100%;
+            max-width: 100%;
+            background-color: white; /* Change table fill color to white */
+            border-collapse: collapse; /* Remove gaps between cells */
+
+        }
+
+        th, td {
+            text-align: center;
+            font-family: Arial, sans-serif; /* Set font family to Arial */
+        }
+
+        /* Style for table headers */
+        th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            color: white;
+            background-color: #0287d4;
+            border: 1px solid #025687;
+            font-size: 13px; /* Adjust the font size as needed */
+        }
+
+        /* Style for table row text */
+        td {
+            font-size: 12px; /* Adjust the font size as needed */
+            border: 1px solid black;
+            z-index: 5;
+            padding: 8px;
+            text-align: center;
+            font-size: 9px; /* Adjust the font size as needed */
+            font-family: Arial, sans-serif; /* Set font family to Arial */
+        }
+
+        /* Style for filter button */
+        .button-link3 {
+            padding: 10px 20px;
+            width: 100%;
+            background-color: #ededed; 
+            color: #0287d4;
+            border: none;
+            cursor: pointer;
+            font-family: Arial, sans-serif; /* Set font family to Arial */
+            text-decoration: none; /* Remove underline */
+            display: inline-block; /* Ensure buttons appear in-line */
+            margin-right: 20px; /* Add space between buttons */
+            /*border-radius: 5px; Rounded corners */
+        }
+
+        /* Darken the button on hover */
+        .button-link3:hover {
+            width: 100%;
+            font-weight: bold;
+            background-color: lightgray; /* Darken the orange color */
+        }
+
+        /* Style for filter button */
+        .button-link2 {
+            padding: 10px 20px;
+            background-color: white; /* Change color to orange */
+            color: #025687;
+            border: none;
+            cursor: pointer;
+            font-family: "Arial Bold", sans-serif; /* Set font family to Arial */
+            font-weight: 2000;
+            text-decoration: none; /* Remove underline */
+            display: inline-block; /* Ensure buttons appear in-line */
+            margin-right: 20px; /* Add space between buttons */
+            border-radius: 5px; /* Rounded corners */
+            transition: background-color 0.3s ease; /* Smooth transition for background color */
+        }
+        
+        /* Darken the button on hover */
+        .button-link2:hover {
+            background-color: white; /* Darken the orange color */
+            color: #0287d4;
+            text-decoration: underline;
+
+        }
+
+
+        /* Style for filter button */
+        .button-link {
+            padding: 13px 20px;
+            width: 100%;
+            background-color: #a3cf5f;
+            border: none;
+            cursor: pointer;
+            font-family: Arial, sans-serif; /* Set font family to Arial */
+            text-decoration: none; /* Remove underline */
+            display: inline-block; /* Ensure buttons appear in-line */
+            margin-right: 20px; /* Add space between buttons */
+            border-radius: 5px; /* Rounded corners */
+        }
+
+        /* Style for title */
+        .title {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-family: Arial, sans-serif; /* Set font family to Arial */
+        }
+
+        /* Style for navigation panel */
+        #navPanel {
+            max-width: 100%;
+            background-color: white;
+            border-bottom: 3px solid darkgray; /* Add border on the right side */
+            padding-top: .5%;
+            padding-bottom: .5%;
+            font-family: Arial, sans-serif; /* Set font family to Arial */
+            z-index: 50000;
+            position: sticky;
+            top: 0;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        /* Style for navigation links */
+        #navPanel a {
+            color: #025687;
+            text-decoration: none;
+            margin-right: 20px;
+            font-weight: bold;
+            font-family: Arial, sans-serif; /* Set font family to Arial */
+        }
+
+        /* Style for page background */
+        body {
+            background-color: white; /* Very light gray */
+            font-family: Arial, sans-serif; /* Set font family to Arial */
+            margin: 0; /* Reset default margin */
+            padding: 0; /* Reset default padding */
+        }
+
+        /* Add CSS for the sticky header container */
+        .sticky-header-container {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: white; /* Match the table background */
+            border-bottom: 5px solid #0287d4; /* Add bottom border to match table header */
+            border-radius: 10px; /* Round the corners */
+            border: 2px solid #025687;
+        }
+
+        /* Style for the sidebar */
+        #sidebar {
+            width: 12%;
+            height: 100%;
+            border-right: 1px solid darkgray; /* Add border on the right side */ 
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #ededed;
+            padding-top: 5.5%;
+            text-align: center;
+            z-index: 1;
+        }
+
+        /* Style for sidebar links */
+        #sidebar a {
+            width: 100%;
+            display: block;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 10px;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 10px; /* Adjust margin as needed */
+        }
+
+        /* Style for the icon container */
+        .icon-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        /* Style for the icon image */
+        .icon {
+            width: 15px; /* Adjust as needed */
+            height: 15px; /* Adjust as needed */
+        }
+        
+        /* Style for the popup text */
+        .popup-text {
+            visibility: hidden;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 10000;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px; /* Adjust as needed */
+        }
+        
+        /* Show the popup text on hover */
+        .icon-container:hover .popup-text {
+            visibility: visible;
+        }
+
+
+        .modal {
+            {% comment %} display: none; /* Hidden by default */ {% endcomment %}
+            position: fixed; /* Stay in place */
+            z-index: 100000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.hidden {
+            display: none;
+        }
+
+        .loading-popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000000;
+        }
+        .loading-popup.hidden {
+            display: none;
+        } 
+        .loading-popup.nothidden {
+            background: blue;
+        }
+
+
+
+        .leaflet-popup-content-wrapper {
+            position: relative;
+        }
+        .popup-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .popup-nav button {
+            background: #007bff;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .popup-nav button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .container2 {
+            padding: 20px;
+            height:20px;
+            width:99%;
+            align-items:center;
+            background:none;
+            z-index: 1000000;
+        }
+        .legend {
+            background: white;
+            padding: 6px 8px;
+            font: 14px Arial, sans-serif;
+            line-height: 18px;
+            color: #555;
+            border-radius: 5px;
+            position: absolute;
+            bottom: 30px;
+            right: 10px;
+            z-index: 1000;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        .legend-content {
+            display: none;
+        }
+        .legend-content label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-content input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .legend-content .category1 {
+            color: '#A3CF5F'; /* Red */
+        }
+        .legend-content .category2 {
+            color: 'green'; /* Green */
+        }
+        .legend-content .category3 {
+            color: '#FFC857'; /* Blue */
+        }
+        .legend-content .category4 {
+            color: '#00253B'; /* Red */
+        }
+        .legend-content .category5 {
+            color: '#0287D4'; /* Green */
+        }
+        .legend-content .category3 {
+            color: red; /* Blue */
+        }
+        .legend-content input[type="checkbox"]:checked::before {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: currentColor;
+            margin-right: 10px;
+        }
+        .legend-header {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .legend-header span {
+            font-weight: bold;
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            width: 102%;
+            height: 81%;
+            border: 1px solid gray;
+            z-index: 5000;
+
+        }
+
+        .dropdown-toggle {
+            background-color: white;
+            color: black;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            height: 95%;
+            {% comment %} overflow: hidden; {% endcomment %}
+            text-overflow: ellipsis;
+            {% comment %} white-space: nowrap; {% endcomment %}
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            {% comment %} width: 100%; {% endcomment %}
+            max-height: 350px;
+            overflow-y: auto;
+            overflow-x: 0;
+        }
+
+        .dropdown-menu label {
+            display: inline-table;
+            justify-content: start;
+            {% comment %} align-left: 0; {% endcomment %}
+            padding-left: 10px;
+            overflow-x: 0;
+            height: 15px;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .dropdown-menu input[type="checkbox"] {
+            margin-left: 40%;
+        }
+
+        .dropdown-menu label:hover {
+            background-color: lightgray;
+        }
+
+        .show {
+            display: block;
+        }
+
+        {% comment %} .selected-items {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        } {% endcomment %}
+        /* Added CSS to give the button a basic appearance without showing selected items */
+        .selected-items {
+            display: none; /* Hide the selected items text */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation panel -->
+    <div id="navPanel">
+        <button class="button-link2" onclick="window.open('https://www.fractracker.org', '_blank')">HOME</button>
+        <button class="button-link2" onclick="window.open('https://www.fractracker.org/about-us/', 'about')">ABOUT</button>
+        <button class="button-link2" onclick="window.open('https://www.fractracker.org/resources/oil-and-gas-101/', 'about')">FRACKING 101</button>
+        <button class="button-link2" onclick="window.open('https://www.fractracker.org/services', 'about')">SERVICES</button>
+        <button class="button-link2" onclick="window.open('https://www.fractracker.org/get-involved', 'about')">GET INVOLVED</button>
+        <button class="button-link2" onclick="window.open('https://www.fractracker.org/help', 'about')">FAQ</button>
+        <button class="button-link2" onclick="window.open('https://fractracker.networkforgood.com/', 'about')">DONATE</button>
+    </div>
+
+    <!-- Sidebar -->
+    <div id="sidebar">
+        {% comment %} <button class="button-link3" onclick="window.open('http://127.0.0.1:8000/boxdata', '_blank')">Data Portal</button> {% endcomment %}
+        <button class="button-link3" onclick="window.open('https://app.box.com/s/i7w2tm3tlp4fqmoe3pzelyjx5gbjj2lk', '_blank')">Datasets</button>
+        <button class="button-link3" onclick="window.open('https://www.fractracker.org/map', '_blank')">Maps</button>
+        <button class="button-link3" onclick="window.open('https://www.fractracker.org/resources/photos/', '_blank')">Gallery</button>
+        <button class="button-link3" onclick="window.open('https://www.fractracker.org/data/data-resources', '_blank')">Resources</button>
+        <button class="button-link3" onclick="window.open('https://www.fractracker.org/categories/by-content/', '_blank')">Articles</button>
+        <button class="button-link3" onclick="window.open('https://www.fractracker.org', '_blank')">Contribute Data</button>
+    </div>
+
+
+
+
+
+    <!-- Main content -->
+    <div class="main-container">
+        <!-- Grid container for pie chart and map -->
+        <div class="featurecontainer">
+            <div id="map">
+                <div class="legend" id="legend">
+                    <div class="legend-header">
+                        <span>Legend</span>
+                        <i class="fa fa-chevron-down" id="legend-toggle"></i>
+                    </div>
+                    <div class="legend-content">
+                        <label class="category1"><input type="checkbox" id="category1" style="color:#A3CF5F;" checked> Injection / Storage / Service</label>
+                        <label class="category1"><input type="checkbox" id="category2" style="color:green;" checked> Not Drilled</label>
+                        <label class="category1"><input type="checkbox" id="category3" style="color:#FFC857;" checked> Orphaned / Abandoned / Unverified Plug</label>
+                        <label class="category1"><input type="checkbox" id="category4" style="color:#00253B;" checked> Other / Unknown</label>
+                        <label class="category1"><input type="checkbox" id="category5" style="color:#0287D4;" checked> Plugged</label>
+                        <label class="category1"><input type="checkbox" id="category6" style="color:red;" checked> Production Well</label>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="filterscontainer">
+            <div class="filterschild1grid">
+                <div class="filterschild1">
+                        <label for="states">Choose up to 3 states (*required):</label>
+                </div>
+                <div class="filterschild1">
+                        <input type="text" id="states" name="states" placeholder="Enter State... Ex: Pennsylvania, Ohio">
+                </div>
+            </div>
+
+            <div class="filterschild1grid">
+                <div class="filterschild1">
+                    <div id="categoryInput">
+                        <label for="well_county">County:</label>
+                        <select id="op_21" size=1>
+                            <option value="default">any</option>
+                            <option value="initial">is equal to</option>
+                            <option value="option2">is in the following list</option>
+                            <option value="option3">contains</option>
+                            <option value="option4">starts with</option>
+                        </select>
+                        <div class="icon-container">
+                            <img src="../media/info-icon.png" alt=" " class="icon">
+                            <span class="popup-text"><b>FILTERING TIPS</b><br><br><b><u>any:</b></u> Will override entered input and return all records<br><br><b><u>is equal to:</b></u> While not case sensitive the spelling and spacing need to match exactly<br><br><b><u>is in the following list:</b></u> Provide a list of values separated by a comma. This is not case sensitive.<br><br><b><u>contains:</b></u> Returns any records that include the character string you've entered.<br><br><b><u>starts with:</b></u> Enter the first few characters to filter by.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="filterschild1">
+                        <input type="text" id="well_county" name="well_county" placeholder="Enter County... Ex: Washington">
+                </div>
+            </div>
+            <div class="filterschild1grid">
+                <div class="filterschild1">
+                    <div id="categoryInput">
+                        <label for="well_status">Well Status:</label>
+                        <select id="op_31" size=1>
+                            <option value="default">any</option>
+                            <option value="initial">is equal to</option>
+                            <option value="option2">is in the following list</option>
+                            <option value="option3">contains</option>
+                            <option value="option4">starts with</option>
+                        </select>
+                        <div class="icon-container">
+                            <img src="../media/info-icon.png" alt=" " class="icon">
+                            <span class="popup-text"><b>FILTERING TIPS</b><br><br><b><u>any:</b></u> Will override entered input and return all records<br><br><b><u>is equal to:</b></u> While not case sensitive the spelling and spacing need to match exactly<br><br><b><u>is in the following list:</b></u> Provide a list of values separated by a comma. This is not case sensitive.<br><br><b><u>contains:</b></u> Returns any records that include the character string you've entered.<br><br><b><u>starts with:</b></u> Enter the first few characters to filter by.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="filterschild1">
+                    <input type="text" id="well_status" name="well_status" placeholder="Enter Well Status...">
+                </div>
+            </div>
+            <div class="filterschild1grid">
+                <div class="filterschild1">
+                    <div id="categoryInput">
+                        <label for="well_type">Well Type:</label>
+                        <select id="op_41" size=1>
+                            <option value="default">any</option>
+                            <option value="initial">is equal to</option>
+                            <option value="option2">is in the following list</option>
+                            <option value="option3">contains</option>
+                            <option value="option4">starts with</option>
+                        </select>
+                        <div class="icon-container">
+                            <img src="../media/info-icon.png" alt=" " class="icon">
+                            <span class="popup-text"><b>FILTERING TIPS</b><br><br><b><u>any:</b></u> Will override entered input and return all records<br><br><b><u>is equal to:</b></u> While not case sensitive the spelling and spacing need to match exactly<br><br><b><u>is in the following list:</b></u> Provide a list of values separated by a comma. This is not case sensitive.<br><br><b><u>contains:</b></u> Returns any records that include the character string you've entered.<br><br><b><u>starts with:</b></u> Enter the first few characters to filter by.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="filterschild1">
+                    <input type="text" id="well_type" name="well_type" placeholder="Enter Well Type...">
+                </div>
+            </div>
+            <div class="filterschild1grid">
+                <div class="filterschild1">
+                    <!-- Add input box for category -->
+                    <div id="categoryInput">
+                        <label for="well_name">Well Name:</label>
+                        <select id="op_51" size=1>
+                            <option value="default">any</option>
+                            <option value="initial">is equal to</option>
+                            <option value="option2">is in the following list</option>
+                            <option value="option3">contains</option>
+                            <option value="option4">starts with</option>
+                        </select>
+                        <div class="icon-container">
+                            <img src="../media/info-icon.png" alt=" " class="icon">
+                            <span class="popup-text"><b>FILTERING TIPS</b><br><br><b><u>any:</b></u> Will override entered input and return all records<br><br><b><u>is equal to:</b></u> While not case sensitive the spelling and spacing need to match exactly<br><br><b><u>is in the following list:</b></u> Provide a list of values separated by a comma. This is not case sensitive.<br><br><b><u>contains:</b></u> Returns any records that include the character string you've entered.<br><br><b><u>starts with:</b></u> Enter the first few characters to filter by.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="filterschild1">
+                    <input type="text" id="well_name" name="well_name" placeholder="Enter Well Name...">
+                </div>
+            </div>
+
+            <div class="filterschild1grid">
+                <div class="filterschild1">
+                    <!-- Add input box for category -->
+                    <div id="categoryInput">
+                        <label for="category">FracTracker Category:</label>
+                        <div class="icon-container">
+                            <img src="../media/info-icon.png" alt=" " class="icon">
+                            <span class="popup-text">These categories are FracTracker's attempt to normalize well status and type across the national dataset.</span>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="filterschild1">
+                    <div class="dropdown">
+                        <button class="dropdown-toggle" id="dropdownMenuButton">Select From Dropdown... <span class="selected-items" id="selectedItems">None</span></button>
+
+                        {% comment %} <button class="dropdown-toggle" id="dropdownMenuButton">Select from dropdown... <span class="selected-items" id="selectedItems">None</span></button> {% endcomment %}
+                        {% comment %} <button class="dropdown-toggle" id="dropdownMenuButton">Select from dropdown... </button> {% endcomment %}
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            {% comment %} <label><input type="checkbox" value="initial">Select from dropdown...</label> {% endcomment %}
+                            <label><input type="checkbox" value="default">All</label>
+                            <label><input type="checkbox" value="Injection / Storage / Service">Injection / Storage / Service</label>
+                            <label><input type="checkbox" value="Not Drilled">Not Drilled</label>
+                            <label><input type="checkbox" value="Orphaned / Abandoned / Unverified Plug">Orphaned / Abandoned / Unverified Plug</label>
+                            <label><input type="checkbox" value="Other / Unknown">Other / Unknown</label>
+                            <label><input type="checkbox" value="Plugged">Plugged</label>
+                            <label><input type="checkbox" value="Production Well">Production Well</label>
+                        </div>
+                    </div>
+                    {% comment %} <select id="fta_cat" size=1>
+                        <option value="initial">Select from dropdown...</option>
+                        <option value="default">All</option>
+                        <option value="Injection / Storage / Service">Injection / Storage / Service</option>
+                        <option value="Not Drilled">Not Drilled</option>
+                        <option value="Orphaned / Abandoned / Unverified Plug">Orphaned / Abandoned / Unverified Plug</option>
+                        <option value="Other / Unknown">Other / Unknown</option>
+                        <option value="Plugged">Plugged</option>
+                        <option value="Production Well">Production Well</option>
+                    </select>
+                    <input type="text" id="category" name="category" placeholder="Select FracTracker Category..."> {% endcomment %}
+                </div>
+            </div>
+            <div class="filterschild1">
+                <button onclick="applyCategoryFilter()">Apply Filter</button>
+                <button onclick="downloadTableData(filteredData)">Download Table Data (CSV)</button>
+            </div>
+            <div id="modal" class="modal hidden">
+                <div id="loading-popup" class="loading-popup hidden">
+                    Retrieving the Records<span id="loading-dots"></span>
+                </div>
+            </div>
+        </div>  
+            
+        <!-- Grid container for the table -->
+        
+        <div class="tablecontainer">
+            <table id="maintable">
+                <thead id="maintableheader" class="sticky-header-container">
+                    <tr>
+                        {% comment %} <th>TMPID</th> {% endcomment %}
+                        <th>API Number</th>
+                        <th>Other ID</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>State</th>
+                        <th>County</th>
+                        <th>Municipality</th>
+                        <th>Well Name</th>
+                        <th>Operator</th>
+                        <th>Spud Date</th>
+                        <th>Plug Date</th>
+                        <th>Well Type</th>
+                        <th>Well Status</th>
+                        <th>Well Configuration</th>
+                        <th>FracTracker Category</th>
+                        {% comment %} <th>UID</th> {% endcomment %}
+                    </tr>
+                </thead>
+                <tbody id="maintablebody">
+                    {% comment %} <tr><td></td></tr> {% endcomment %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td id="pagination" colspan="100%">
+                            <!-- Pagination buttons will be added here -->
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>  
+    </div>    
+    <script>
+        // Initialize Leaflet map
+
+        var map = L.map('map').setView([39.8283,-98.5795], 4);
+        var geojsonLayer;
+        var osmUrl = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                osmAttrib = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                osm = L.tileLayer(osmUrl, { maxZoom: 20, attribution: osmAttrib }).addTo(map),
+                drawnItems = L.featureGroup().addTo(map);
+        var OpenStreetMap_Mapnik = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            {% comment %} attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' {% endcomment %}
+        });
+        var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          {% comment %} attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors' {% endcomment %}
+        });
+        var Esri_WorldTopoMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+            {% comment %} attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community' {% endcomment %}
+        });
+        
+    
+    
+        var controlbase = L.control.layers({'Light': osm,'OSM':OpenStreetMap_Mapnik, 'Satellite':sat, 'Terrain':Esri_WorldTopoMap}, {}, { position: 'bottomleft', collapsed: false }).addTo(map);
+
+    
+
+
+        var geocoder = L.Control.Geocoder.nominatim();
+        if (typeof URLSearchParams !== 'undefined' && location.search) {
+          // parse /?geocoder=nominatim from URL
+          var params = new URLSearchParams(location.search);
+          var geocoderString = params.get('geocoder');
+          if (geocoderString && L.Control.Geocoder[geocoderString]) {
+            console.log('Using geocoder', geocoderString);
+            geocoder = L.Control.Geocoder[geocoderString]();
+          } else if (geocoderString) {
+            console.warn('Unsupported geocoder', geocoderString);
+          }
+        }
+  
+        var control = L.Control.geocoder({
+          collapsed: false,
+          placeholder: '',
+          position:'topright',
+          geocoder: geocoder
+        }).addTo(map);
+        var dots;
+  
+        // Call the getContainer routine.
+        var htmlObject = control.getContainer();
+        // Get the desired parent node.
+        var a = document.getElementById('search-container');
+
+        // Function to fetch GeoJSON data from a view
+        function getStates(data) {
+            var states = document.getElementById('states').value;
+            $.ajax({
+                url: '/portal/getstates_view', // Replace with your view URL
+                method: 'GET',
+                data: {
+                    states: states,
+                },
+                success: function(data) {
+                    map.eachLayer(function(layer) {
+
+                        try {
+                            if (layer._leaflet_id == stateLayer) {
+                                map.removeLayer(layer);
+                            } else {
+                                {% comment %} console.log('layer id did not match') {% endcomment %}
+                            }
+                            }
+                            catch(err) {
+                                {% comment %} console.log('no such layer exists'); {% endcomment %}
+                            }
+                         
+                    }); 
+                    // Convert GeoJSON to vector tiles using leaflet-geojson-vt
+                    var geojsonStyle = {
+                        fillColor:"#FFFFFF",
+                        color: "#000",
+                        weight: 3,
+                        opacity: .6,
+                        fillOpacity: 0.000001,
+                      };
+                    
+                    var options = {
+                        maxZoom: 20,
+                        minZoom: 6,
+                        tolerance: 3,
+                        debug: 0,
+                        style: geojsonStyle
+                    };
+                    canvasLayer_state = L.geoJSON(data, options).addTo(map);
+
+                    {% comment %} canvasLayer_state = L.geoJson.vt(data, options).addTo(map); {% endcomment %}
+
+                    stateLayer=canvasLayer_state._leaflet_id
+                    try {
+                        map.fitBounds(canvasLayer_state.getBounds());
+                    } catch(err) {
+                        {% comment %} console.log('no such layer exists just yet'); {% endcomment %}
+                    } 
+        
+                },
+                error: function(xhr, status, error) {
+                    // Handle error
+                    console.error(error);
+                }
+            });
+        }
+        // Function to fetch GeoJSON data from a view
+        function getCounties(data) {
+            var states = document.getElementById('states').value;
+            $.ajax({
+                url: '/portal/getcounties_view', // Replace with your view URL
+                method: 'GET',
+                data: {
+                    states: states,
+                },
+                success: function(data) {
+                    console.log('GeoJSON data received:', data);
+                    // Convert GeoJSON to vector tiles using leaflet-geojson-vt
+                    map.eachLayer(function(layer) {
+
+                        try {
+                            if (layer._leaflet_id == countyLayer) {
+                                map.removeLayer(layer);
+                            } else {
+                                console.log('layer id did not match')
+                            }
+                            }
+                            catch(err) {
+                                console.log('no such layer exists');
+                            }
+                         
+                    }); 
+
+                    var geojsonStyle = {
+                        fillColor:"#FFFFFF",
+                        color: "#000",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.00001,
+                      };
+                    
+                    var options = {
+                        maxZoom: 20,
+                        minZoom: 8,
+                        tolerance: 3,
+                        debug: 0,
+                        style: geojsonStyle,
+                        zIndex: 5000
+                    };
+                    canvasLayer_cty = L.geoJson.vt(data, options).addTo(map);
+
+                    countyLayer = canvasLayer_cty._leaflet_id
+                    
+                },
+                error: function(xhr, status, error) {
+                    // Handle error
+                    console.error(error);
+                }
+            });
+        }
+
+        
+
+        function onEachFeatureFn(prop, feature, layer) {
+                layer.feature.property.longitude
+            }
+        // Empty Layer Group that will receive the clusters data on the fly.
+        var markers = L.geoJSON(null, {
+          pointToLayer: createClusterIcon,
+          onEachFeature: function (feature, layer) {
+                const wwlink = '<br><b>WellWiki Page: </b><a href='+feature.properties.wellwiki+' target="_blank">'+feature.properties.wellwiki+'</a>';
+                layer.bindPopup("<b>API Number: </b>" + feature.properties.api_num + "<br><b>FracTracker Class: </b>" + 
+                                                        feature.properties.ft_category + "<br><b>State: </b>" + 
+                                                        feature.properties.stusps + "<br><b>Provided Well Type: </b>" + 
+                                                        feature.properties.well_type + "<br><b>Provided Well Status: </b>" + 
+                                                        feature.properties.well_status + "<br><b>Well Name: </b>" + 
+                                                        feature.properties.well_name + "<br><b>Operator: </b>" + 
+                                                        feature.properties.operator + "<br><b>Longitude:</b> " + 
+                                                        feature.properties.lng + "<br><b>Latitude: </b>" + 
+                                                        feature.properties.lat + wwlink);
+        }
+        }).addTo(map);
+
+                // Update the displayed clusters after user pan / zoom.
+        map.on('moveend', update);
+        
+        function update() {
+          if (!ready) return;
+          var bounds = map.getBounds();
+          var bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
+          var zoom = map.getZoom();
+          var clusters = index.getClusters(bbox, zoom);
+          markers.clearLayers();
+          markers.addData(clusters);
+
+        }
+        
+        // Zoom to expand the cluster clicked by user.
+        markers.on('click', function(e) {
+          var clusterId = e.layer.feature.properties.cluster_id;
+          var center = e.latlng;
+          var expansionZoom;
+          if (clusterId) {
+            expansionZoom = index.getClusterExpansionZoom(clusterId);
+            map.flyTo(center, expansionZoom);
+          }
+        });
+
+
+
+        function getColor(stype) {
+            switch (stype) {
+              case 'Plugged':
+                return  '#0287D4';
+              case 'Injection / Storage / Service':
+                return '#A3CF5F';
+              case 'Production Well':
+                return 'red';
+              case 'Other / Unknown':
+                return '#00253B';
+              case 'Orphaned / Abandoned / Unverified Plug':
+                return '#FFC857';
+              case 'Not Drilled':
+                return 'green';
+              default:
+                return '#FDFFFC';
+            }
+          }
+
+        function createClusterIcon(feature, latlng) {
+          var markerStyle = {
+                color: getColor(feature.properties.ft_category),
+                fillColor: getColor(feature.properties.ft_category),
+                radius: 3, // Radius // Fill opacity of the circle
+          };
+          if (!feature.properties.cluster) return L.circleMarker(latlng, markerStyle);
+          var count = feature.properties.point_count;
+          var size =
+            count < 100 ? 'small' :
+            count < 1000 ? 'medium' : 'large';
+          var icon = L.divIcon({
+            html: '<div><span>' + feature.properties.point_count_abbreviated + '</span></div>',
+            className: 'marker-cluster marker-cluster-' + size,
+            iconSize: L.point(25)
+          });
+        
+          return L.marker(latlng, {
+            icon: icon
+          });
+        }
+
+
+    
+        // Function to update the map markers with the filtered data
+        function updateMapMarkers(data) {
+            data = JSON.parse(data);
+            console.log('updateMapMarkers')
+            // Clear existing markers from the map
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer);
+                }  
+            });
+
+            index = supercluster({
+                radius: 20,
+                extent: 256,
+                maxZoom: 10
+              }).load(data.features); // Expects an array of Features.
+            ready = true;
+
+            map.addLayer(markers);
+            update();
+            // Get the bounding box of the markers
+            updateTable(data.features);
+            document.getElementById('loading-popup').classList.add('hidden');
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        function getmapdata(selectedStates, selectedDataset, selectedCat) {
+            console.log('getting the data for the map') 
+            $.ajax({
+                url: '/portal/generate_geojson',
+                method: 'GET',
+                data: {
+                    selectedDataset: 'Wells',
+                },
+                success: function(data) {
+                    updateMapMarkers(data);
+                },
+                error: function(xhr, status, error) {
+                    enableInputs();
+                    // Handle error
+                    console.error(error);
+                }
+            });
+        }
+            
+
+        const dropdownButton = document.getElementById('dropdownMenuButton');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const selectedItems = document.getElementById('selectedItems');
+
+        let selectedValues = [];  // Variable to store selected items
+
+        dropdownButton.addEventListener('click', () => {
+            dropdownMenu.classList.toggle('show');
+        });
+
+        dropdownMenu.addEventListener('change', () => {
+            selectedValues = Array.from(dropdownMenu.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(checkbox => checkbox.value);
+            // Update the button text based on selected items
+            selectedItems.textContent = selectedValues.length === 0 ? 'None' : selectedValues.join(', ');
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                dropdownMenu.classList.remove('show');
+            }
+        });
+
+        {% comment %} // Function to get selected values
+        window.getSelectedValues = () => {
+            return selectedValues;
+        }; {% endcomment %}
+
+        // Function to apply category filter
+        function applyCategoryFilter(category, states) {
+
+            // Function to get selected values
+            var category = window.getSelectedValues = () => {
+                return selectedValues;
+            };
+            console.log('here are the lucky categories')
+            console.log(category)
+            console.log('did we get em?')
+            {% comment %} var category = document.getElementById('fta_cat').value; {% endcomment %}
+            var states = document.getElementById('states').value;
+            var statesop = document.getElementById('states').value;
+            var county = document.getElementById('well_county').value;
+            var countyop = document.getElementById('op_21').value;
+            var well_type = document.getElementById('well_type').value;
+            var well_typeop = document.getElementById('op_41').value;
+            var well_status = document.getElementById('well_status').value;
+            var well_statusop = document.getElementById('op_31').value;
+            var well_name = document.getElementById('well_name').value;
+            var well_nameop = document.getElementById('op_51').value;
+            // Perform AJAX call to fetch filtered data based on 'category'
+            console.log('sending the request');
+            document.getElementById('loading-popup').classList.remove('hidden');
+
+
+            document.getElementById('modal').classList.remove('hidden');
+            // Start adding periods to the text
+            let dots = '';
+            let dotCount = 0;
+            dotInterval = setInterval(() => {
+                dotCount += 1;
+                if (dotCount > 2) {
+                    thetext = '   '; // Reset dots
+                    dotCount = 0;
+                } else {
+                    thetext = '...'
+                }
+                document.getElementById('loading-dots').textContent = thetext;
+            }, 1000); // Update text every 500ms
+
+            $.ajax({
+                url: '/portal/generate_geojson',
+                method: 'GET',
+                data: {
+                    states: states,
+                    statesop: statesop,
+                    county: county,
+                    countyop: countyop,
+                    well_type: well_type,
+                    well_typeop: well_typeop,
+                    well_status: well_status,
+                    well_statusop: well_statusop,
+                    well_name: well_name,
+                    well_nameop: well_nameop,
+                    category: category,
+
+                },
+                success: function(data) {
+                    filteredData = data
+                    console.log('had success')
+                    updateMapMarkers(data);
+                    console.log('should be done');
+                    getCounties(data);
+                    getStates(data);
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                    document.getElementById('loading-popup').classList.add('hidden');
+                    document.getElementById('modal').classList.add('hidden');
+                }
+            });
+            
+
+        }
+        
+        function updateTable(features, r = 10 ) {
+            var tableBody = document.getElementById('maintablebody');
+            tableBody.innerHTML = ''; // Clear existing rows
+        
+            // Pagination variables
+            var currentPage = 1;
+            var rowsPerPage = 10;
+        
+            // Function to display rows based on current page
+            function displayRows(currentPage) {
+                var startIndex = (currentPage - 1) * rowsPerPage;
+                var endIndex = startIndex + rowsPerPage;
+                var pageFeatures = features.slice(startIndex, endIndex);
+        
+                // Ensure pageFeatures is an array
+                if (!Array.isArray(pageFeatures)) {
+                    console.error('pageFeatures is not an array:', pageFeatures);
+                    return;
+                }
+        
+                // Clear existing rows in table body
+                tableBody.innerHTML = '';
+        
+                // Append rows to table
+                pageFeatures.forEach(function(feature) {
+                    var row = document.createElement('tr');
+        
+                    // Loop through each property in feature to create cells
+                    for (var prop in feature.properties) {
+                        if (prop == 'id' || prop == 'wellwiki' || prop == 'ftuid') {continue;} else {
+                        var cell = document.createElement('td');
+                        cell.textContent = feature.properties[prop]; // Display each property
+                        row.appendChild(cell);}
+                    }
+        
+                    tableBody.appendChild(row);
+                });
+        
+                // Update pagination controls
+                updatePaginationControls(currentPage);
+            }
+        
+            // Initial display of rows
+            displayRows(currentPage);
+        
+            // Function to update pagination controls
+            function updatePaginationControls(currentPage) {
+                var paginationCell = document.getElementById('pagination');
+                paginationCell.innerHTML = ''; // Clear existing pagination buttons
+        
+                // Calculate total pages
+                var totalPages = Math.ceil(features.length / rowsPerPage);
+        
+                // Show buttons for the first page, last page, two pages before and two pages after the current page
+                var buttonsToShow = [];
+                if (totalPages > 0) {
+                    // First page
+                    if (currentPage > 3) {
+                        buttonsToShow.push(1);
+                    }
+        
+                    // Two pages before current page
+                    if (currentPage > 2) {
+                        buttonsToShow.push(currentPage - 2);
+                    }
+                    if (currentPage > 1) {
+                        buttonsToShow.push(currentPage - 1);
+                    }
+        
+                    // Current page
+                    buttonsToShow.push(currentPage);
+        
+                    // Two pages after current page
+                    if (currentPage < totalPages) {
+                        buttonsToShow.push(currentPage + 1);
+                    }
+                    if (currentPage < totalPages - 1) {
+                        buttonsToShow.push(currentPage + 2);
+                    }
+        
+                    // Last page
+                    if (totalPages > 1) {
+                        buttonsToShow.push(totalPages);
+                    }
+                    
+                } 
+        
+                // Add page number buttons
+                buttonsToShow.forEach(function(page) {
+                    var button = document.createElement('button');
+                    button.textContent = page;
+
+                    button.onclick = function() {
+                        currentPage = parseInt(this.textContent);
+                        displayRows(currentPage);
+                    };
+                    paginationCell.appendChild(button);
+                });
+            }
+        }
+
+    // Function to download CSV of table data
+    function downloadTableData() {
+        console.log('starting the download')
+        // Check if filtered data is available
+        if (!filteredData) {
+            console.error("Filtered data is not available.");
+            return;
+        }
+        
+        // Parse filtered data
+        var data = JSON.parse(filteredData);
+        console.log(data)
+        // Function to properly encode special characters for CSV
+        function encodeForCSV(str) {
+            // If the string contains comma, double quote, or newline characters,
+            // wrap it in double quotes and escape any double quotes within the string
+            if (/[,"\n]/.test(str)) {
+                return '"' + str.replace(/"/g, '""').replace('#','') + '"';
+            } else if (/#/.test(str)) {
+                // If the string contains #, wrap it in double quotes to ensure it's treated as a regular character
+                console.log(str);
+                console.log(str.replace('#',''));
+                return str.replace('#','');
+            }
+            return str;
+        }
+    
+        // Convert data to CSV format
+        var csvContent = "data:text/csv;charset=utf-8,";
+    
+        // Get the headers from the first data item
+        {% comment %} var headers = ['api_num','county','ft_category','fta_uid','id','latitude','longitude','municipality','operator','other_id','plug_date','spud_date','stusps','well_configuration','well_name','well_status','well_type'];
+        csvContent += headers.map(encodeForCSV).join(",") + "\n"; {% endcomment %}
+    
+        var headers = Object.keys(data.features[0].properties);
+        csvContent += headers.join(',') + '\n';
+
+        console.log(headers)
+        
+        // Convert each data item to CSV format
+        data.features.forEach(function(dataItem) {
+            console.log(dataItem)
+            var row = headers.map(function(header) {
+                return encodeForCSV(dataItem.properties[header]);
+            }).join(",");
+            console.log(row);
+            csvContent += row + "\n";
+        });
+    
+        // Create a Blob object with the CSV content
+        var encodedUri = encodeURI(csvContent);
+        var link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "filtered_well_data.csv");
+    
+        // Initiate download
+        document.body.appendChild(link); // Required for Firefox
+        link.click();
+    
+        // Remove the link element
+        document.body.removeChild(link);
+    }
+    
+
+
+    // Handling the legend
+    // Toggle legend content
+    document.getElementById('legend-toggle').addEventListener('click', function() {
+        var content = document.querySelector('.legend-content');
+        var icon = document.getElementById('legend-toggle');
+
+        if (content.style.display === 'none' || content.style.display === '') {
+            content.style.display = 'block';
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        } else {
+            content.style.display = 'none';
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        }
+    });
+
+    // Initialize legend state
+    document.querySelector('.legend-content').style.display = 'none'; // Start with legend collapsed
+
+
+    // Handing ability to expand the table
+    document.getElementById('expandButton').addEventListener('click', function() {
+        updateTable(features, r = 50 )
+        // Disable the button after expanding the table
+        this.disabled = true;
+        this.textContent = 'Table Expanded';
+    });
+
+
+    // Handling the filter input boxes
+    // Event listener
+    document.getElementById('well_county').addEventListener('input', function() {
+        const dropdown = document.getElementById('op_21');
+        if (dropdown.value === 'default') {
+            dropdown.value = 'option3';
+        }
+    });
+    document.getElementById('op_21').addEventListener('change', function() {
+        const dropdown = document.getElementById('op_21');
+        const txtinput = document.getElementById('well_county');
+        if (dropdown.value === 'default') {
+            txtinput.value = '';
+        } 
+    });
+    document.getElementById('well_status').addEventListener('input', function() {
+        const dropdown = document.getElementById('op_31');
+        if (dropdown.value === 'default') {
+            dropdown.value = 'option3';
+        }
+    });
+    document.getElementById('op_31').addEventListener('change', function() {
+        const dropdown = document.getElementById('op_31');
+        const txtinput = document.getElementById('well_status');
+        if (dropdown.value === 'default') {
+            txtinput.value = '';
+        } 
+    });
+    document.getElementById('well_type').addEventListener('input', function() {
+        const dropdown = document.getElementById('op_41');
+        if (dropdown.value === 'default') {
+            dropdown.value = 'option3';
+        }
+    });
+    document.getElementById('op_41').addEventListener('change', function() {
+        const dropdown = document.getElementById('op_41');
+        const txtinput = document.getElementById('well_type');
+        if (dropdown.value === 'default') {
+            txtinput.value = '';
+        } 
+    });
+    document.getElementById('well_name').addEventListener('input', function() {
+        const dropdown = document.getElementById('op_51');
+        if (dropdown.value === 'default') {
+            dropdown.value = 'option3';
+        }
+    });
+    document.getElementById('op_51').addEventListener('change', function() {
+        const dropdown = document.getElementById('op_51');
+        const txtinput = document.getElementById('well_name');
+        if (dropdown.value === 'default') {
+            txtinput.value = '';
+        } 
+    });
+
+
+    </script>
+</body>
+</html>
