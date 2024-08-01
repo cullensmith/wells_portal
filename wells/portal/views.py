@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Wells, Counties, States, Wells_OH, Wells_PA, Wells_TX
+from .models import Well, Counties, States, Wells_OH, Wells_PA, Wells_TX
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.views.generic import View
@@ -11,9 +11,9 @@ import ast
 
 
 # Create your views here.
-def wells(request):
-    wells = Wells.objects.all()
-    return render(request, 'wells.html', { 'wells': wells })
+def portal(request):
+    well = Well.objects.all()
+    return render(request, 'home.html', { 'portal': portal })
 
 def getstates_view(request):
     print('now were getting the states for the map')
@@ -321,7 +321,7 @@ def generate_geojson(request):
     #     elif u == 'texas':
     #         attrvals.extend(Wells_TX.objects.filter(**filter_kwargs))   
     
-    attrvals = Wells.objects.filter(**filter_kwargs)
+    attrvals = Well.objects.filter(**filter_kwargs)
     print('got to here')
 
     newwell = list()

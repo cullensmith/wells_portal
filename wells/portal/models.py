@@ -23,7 +23,7 @@ class Counties(models.Model):
     def __str__(self) -> str:
         return super().__str__()
 
-class Wells(models.Model):
+class Well(models.Model):
     api_num = models.CharField(max_length=50, blank=True, null=True)
     other_id = models.CharField(max_length=50, blank=True, null=True)
     lat = models.FloatField(blank=True, null=True)
