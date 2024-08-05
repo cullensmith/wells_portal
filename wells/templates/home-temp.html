@@ -1043,7 +1043,7 @@
                 extent: 256,
                 maxZoom: 10
               }).load(data.features); // Expects an array of Features.
-            ready = true;
+            {% comment %} ready = true; {% endcomment %}
 
             map.addLayer(markers);
             update();
@@ -1364,28 +1364,29 @@
     document.querySelector('.legend-content').style.display = 'none'; // Start with legend collapsed
 
 
-    // Handing ability to expand the table
+    {% comment %} // Handing ability to expand the table
     document.getElementById('expandButton').addEventListener('click', function() {
         updateTable(features, r = 50 )
         // Disable the button after expanding the table
         this.disabled = true;
         this.textContent = 'Table Expanded';
-    });
+    }); {% endcomment %}
 
 
     // Handling the filter input boxes
     // Event listener
     document.getElementById('well_county').addEventListener('input', function() {
-        const dropdown = document.getElementById('op_21');
-        if (dropdown.value === 'default') {
-            dropdown.value = 'option3';
+        const dropdown2 = document.getElementById('op_21');
+        if (dropdown2.value === 'default') {
+            dropdown2.value = 'option3';
         }
     });
     document.getElementById('op_21').addEventListener('change', function() {
-        const dropdown = document.getElementById('op_21');
-        const txtinput = document.getElementById('well_county');
-        if (dropdown.value === 'default') {
-            txtinput.value = '';
+        const dropdown22 = document.getElementById('op_21');
+        const txtinput22 = document.getElementById('well_county');
+        console.log('yes, the dropdown changed')
+        if (dropdown22.value === 'default') {
+            txtinput22.value = '';
         } 
     });
     document.getElementById('well_status').addEventListener('input', function() {
@@ -1427,7 +1428,9 @@
             txtinput.value = '';
         } 
     });
+    
 
+    console.log('we are useing the updated version')
 
     </script>
 </body>

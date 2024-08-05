@@ -1364,13 +1364,13 @@
     document.querySelector('.legend-content').style.display = 'none'; // Start with legend collapsed
 
 
-    // Handing ability to expand the table
+    {% comment %} // Handing ability to expand the table
     document.getElementById('expandButton').addEventListener('click', function() {
         updateTable(features, r = 50 )
         // Disable the button after expanding the table
         this.disabled = true;
         this.textContent = 'Table Expanded';
-    });
+    }); {% endcomment %}
 
 
     // Handling the filter input boxes
@@ -1428,7 +1428,7 @@
         } 
     });
 
-
+    console.log('we are using this version')
     </script>
 </body>
 </html>
