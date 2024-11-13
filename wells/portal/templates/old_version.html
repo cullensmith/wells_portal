@@ -26,7 +26,10 @@
         .main-container {
             display: grid;
             grid-template-rows: 500px 240px 550px;
-            margin: 1%;
+            margin-top: 2%;
+            margin-bottom: 2%;
+            margin-left: 14%;
+            margin-right: 2%;
             grid-gap: 4%;
             background-color: #ededed;
             border: 12px solid;
@@ -48,6 +51,7 @@
         /* Style for filter grid container */
         .filterscontainer {
             {% comment %} border: 5px solid red; {% endcomment %}
+
             display: grid;
             height: 100%;
             grid-template-rows: repeat(3, 33%);
@@ -222,20 +226,6 @@
             font-family: Arial, sans-serif; /* Set font family to Arial */
         }
 
-
-        .nav-container {
-            display: grid;
-            grid-template-rows: 10% 10%
-            margin: 1%;
-            grid-gap: 4%;
-            background-color: red;
-            border: 12px solid;
-            border-color: #ededed;
-            border-radius: 20px;
-        }
-
-        
-
         /* Style for navigation panel */
         #navPanel {
             max-width: 100%;
@@ -277,7 +267,6 @@
             border-bottom: 5px solid #0287d4; /* Add bottom border to match table header */
             border-radius: 10px; /* Round the corners */
             border: 2px solid #025687;
-            
         }
 
         /* Style for the sidebar */
@@ -545,30 +534,26 @@
 <body>
 
     <!-- Navigation panel -->
-    <div class="nav-container">
-        <div>
-            <img src="/static/2021-FracTracker-logo-horizontal.png" alt="FracTracker Logo" width=100% height=100%>
-        </div>
-        <div id="navPanel">
-            <button class="button-link2" onclick="window.open('https://www.fractracker.org', '_blank')">HOME</button>
-            <button class="button-link2" onclick="window.open('https://www.fractracker.org/about-us/', 'about')">ABOUT</button>
-            <button class="button-link2" onclick="window.open('https://www.fractracker.org/resources/oil-and-gas-101/', 'about')">FRACKING 101</button>
-            <button class="button-link2" onclick="window.open('https://www.fractracker.org/services', 'about')">SERVICES</button>
-            <button class="button-link2" onclick="window.open('https://www.fractracker.org/get-involved', 'about')">GET INVOLVED</button>
-            <button class="button-link2" onclick="window.open('https://www.fractracker.org/help', 'about')">FAQ</button>
-            <button class="button-link2" onclick="window.open('https://fractracker.networkforgood.com/', 'about')">DONATE</button>
-        </div>
+    <div id="navPanel">
+        <button class="button-link2" onclick="window.open('https://www.fractracker.org', '_blank')">HOME</button>
+        <button class="button-link2" onclick="window.open('https://www.fractracker.org/about-us/', 'about')">ABOUT</button>
+        <button class="button-link2" onclick="window.open('https://www.fractracker.org/resources/oil-and-gas-101/', 'about')">FRACKING 101</button>
+        <button class="button-link2" onclick="window.open('https://www.fractracker.org/services', 'about')">SERVICES</button>
+        <button class="button-link2" onclick="window.open('https://www.fractracker.org/get-involved', 'about')">GET INVOLVED</button>
+        <button class="button-link2" onclick="window.open('https://www.fractracker.org/help', 'about')">FAQ</button>
+        <button class="button-link2" onclick="window.open('https://fractracker.networkforgood.com/', 'about')">DONATE</button>
     </div>
 
     <!-- Sidebar -->
-    {% comment %} <div id="sidebar">
+    <div id="sidebar">
+        {% comment %} <button class="button-link3" onclick="window.open('http://127.0.0.1:8000/boxdata', '_blank')">Data Portal</button> {% endcomment %}
         <button class="button-link3" onclick="window.open('https://app.box.com/s/i7w2tm3tlp4fqmoe3pzelyjx5gbjj2lk', '_blank')">Datasets</button>
         <button class="button-link3" onclick="window.open('https://www.fractracker.org/map', '_blank')">Maps</button>
         <button class="button-link3" onclick="window.open('https://www.fractracker.org/resources/photos/', '_blank')">Gallery</button>
         <button class="button-link3" onclick="window.open('https://www.fractracker.org/data/data-resources', '_blank')">Resources</button>
         <button class="button-link3" onclick="window.open('https://www.fractracker.org/categories/by-content/', '_blank')">Articles</button>
         <button class="button-link3" onclick="window.open('https://www.fractracker.org', '_blank')">Contribute Data</button>
-    </div> {% endcomment %}
+    </div>
 
 
 
