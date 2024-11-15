@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from .models import Well, Counties, States, Wells_OH, Wells_PA, Wells_TX
+from .models import Well
+# from .models import Counties, States, Wells_OH, Wells_PA, Wells_TX
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.views.generic import View

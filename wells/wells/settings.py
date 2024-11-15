@@ -74,17 +74,23 @@ WSGI_APPLICATION = "wells.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'postgres',
+#         'USER': 'fractracker',
+#         'PASSWORD': 'Cam#2d6Ju2&Wx',
+#         'HOST': 'ft-wells.clg2kss0wad6.us-east-2.rds.amazonaws.com',
+#         'PORT': '5432'
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'fractracker',
-        'PASSWORD': 'Cam#2d6Ju2&Wx',
-        'HOST': 'ft-wells.clg2kss0wad6.us-east-2.rds.amazonaws.com',
-        'PORT': '5432'
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
